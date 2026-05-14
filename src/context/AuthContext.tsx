@@ -9,12 +9,7 @@ interface AuthContextType {
   loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  isAdmin: false,
-  loading: true,
-});
-
+const AuthContext = createContext<AuthContextType>({ user: null, isAdmin: false, loading: true });
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -26,9 +21,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        // Check if user email is in /admins node
-        const adminRef = ref(db, `admins/${firebaseUser.uid}`);
-        const snapshot = await get(adminRef);
+        const snapshot = await get(ref(db, `admins/${firebaseUser.uid}`));
         setIsAdmin(snapshot.exists());
       } else {
         setIsAdmin(false);
