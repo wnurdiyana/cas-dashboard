@@ -1,86 +1,104 @@
 import React, { useState, useEffect } from 'react';
-import { ref, onValue } from 'firebase/database';
-import { db } from '../firebase';
-import { TaskCard } from '../components/TaskCard';
+import { ref, onValue, update } from 'firebase/database';
+import { db, auth } from '../firebase';
+import { TaskCard, TaskStatus } from '../components/TaskCard';
+import { useAuth } from '../context/AuthContext';
+import { signOut } from 'firebase/auth';
 
 export default function MemberDashboard() {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState<any[]>([]);
-  const [filterName, setFilterName] = useState('');
+  const [filterStatus, setFilterStatus] = useState('All');
 
   useEffect(() => {
     const tasksRef = ref(db, 'tasks');
-
     onValue(tasksRef, (snapshot) => {
       const data = snapshot.val();
-
       if (data) {
-        const taskList = Object.entries(data).map(
-          ([id, value]: [string, any]) => ({
-            id,
-            ...value
-          })
+        const taskList = Object.entries(data).map(([id, value]: [string, any]) => ({ id, ...value }));
+        // Only show tasks assigned to the logged-in user's email
+        const myTasks = taskList.filter(
+          (t) => t.assigneeEmail?.toLowerCase() === user?.email?.toLowerCase()
         );
-
-        setTasks(taskList);
+        setTasks(myTasks);
       } else {
         setTasks([]);
       }
     });
-  }, []);
+  }, [user]);
 
-  const filteredTasks = tasks.filter((t) =>
-    (t.assignee || '')
-      .toLowerCase()
-      .includes(filterName.toLowerCase())
-  );
+  const updateStatus = (id: string, status: TaskStatus) => {
+    update(ref(db, `tasks/${id}`), { status });
+  };
+
+  const filteredTasks = filterStatus === 'All' ? tasks : tasks.filter(t => t.status === filterStatus);
+
+  const statusCounts = tasks.reduce((acc: any, t) => {
+    acc[t.status] = (acc[t.status] || 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-          My Tasks
-        </h1>
-
-        <div className="relative w-full md:w-64">
-          <input
-            className="w-full p-3 pl-10 rounded-full border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="Filter by your name..."
-            value={filterName}
-            onChange={(e) => setFilterName(e.target.value)}
-          />
-
-          <svg
-            className="absolute left-3 top-3 w-5 h-5 text-slate-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">My Tasks</h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Welcome, {user?.displayName || user?.email}
+          </p>
         </div>
+        <button
+          onClick={() => signOut(auth)}
+          className="text-sm text-slate-500 hover:text-red-500 transition-colors"
+        >
+          Sign Out
+        </button>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        {['Pending', 'In Progress', 'Completed', 'Cancelled'].map((s) => (
+          <div key={s} className="bg-white rounded-xl border border-slate-200 p-4 text-center">
+            <div className="text-2xl font-extrabold text-slate-900">{statusCounts[s] || 0}</div>
+            <div className="text-xs text-slate-500 mt-1">{s}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filter */}
+      <div className="flex gap-2 flex-wrap mb-6">
+        {['All', 'Pending', 'In Progress', 'Completed', 'Cancelled', 'On Hold'].map((s) => (
+          <button
+            key={s}
+            onClick={() => setFilterStatus(s)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              filterStatus === s
+                ? 'bg-indigo-600 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      {/* Tasks */}
       {filteredTasks.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTasks.map((task) => (
             <TaskCard
               key={task.id}
               task={task}
+              onUpdateStatus={updateStatus}
             />
           ))}
         </div>
       ) : (
         <div className="text-center py-20">
-          <div className="text-5xl mb-4">🔍</div>
-
-          <p className="text-slate-500">
-            No tasks found for this name.
-          </p>
+          <div className="text-5xl mb-4">📋</div>
+          <p className="text-slate-500 font-medium">No tasks assigned to you yet.</p>
+          <p className="text-slate-400 text-sm mt-1">Check back later or contact your admin.</p>
         </div>
       )}
     </div>
