@@ -1,9 +1,5 @@
 import React, { useState } from 'react';
-import {
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-} from 'firebase/auth';
+import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 
 export default function LoginPage() {
@@ -14,50 +10,39 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const handleGoogle = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (e: any) {
-      setError(e.message);
-    }
+    setError(''); setLoading(true);
+    try { await signInWithPopup(auth, googleProvider); }
+    catch (e: any) { setError(e.message); }
     setLoading(false);
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault(); setError(''); setLoading(true);
     try {
-      if (isRegister) {
-        await createUserWithEmailAndPassword(auth, email, password);
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-      }
+      if (isRegister) await createUserWithEmailAndPassword(auth, email, password);
+      else await signInWithEmailAndPassword(auth, email, password);
     } catch (e: any) {
-      setError(e.message.replace('Firebase: ', '').replace(/\(auth.*\)\.?/, ''));
+      setError(e.message.replace('Firebase: ', '').replace(/\(auth.*\)\.?/, '').trim());
     }
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-700 to-indigo-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 shadow-lg">
-            C
+          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center font-extrabold text-indigo-700 text-3xl mx-auto mb-4 shadow-xl">
+            M
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900">CAS Dashboard</h1>
-          <p className="text-slate-500 text-sm mt-1">Sign in to access your tasks</p>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">MyCAS Dashboard</h1>
+          <p className="text-indigo-200 text-sm mt-2">Sign in to access your tasks</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-          {/* Google Sign In */}
+        <div className="bg-white rounded-2xl shadow-2xl p-8">
           <button
             onClick={handleGoogle}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors mb-6 disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 border-2 border-slate-200 rounded-xl py-3 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors mb-6 disabled:opacity-50"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -69,52 +54,28 @@ export default function LoginPage() {
           </button>
 
           <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200" />
-            </div>
-            <div className="relative flex justify-center text-xs text-slate-400 bg-white px-2">
-              or use email
-            </div>
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
+            <div className="relative flex justify-center"><span className="text-xs text-slate-400 bg-white px-3">or use email</span></div>
           </div>
 
-          {/* Email/Password Form */}
           <form onSubmit={handleEmailAuth} className="space-y-4">
-            <input
-              type="email"
-              required
-              placeholder="Email address"
-              value={email}
+            <input type="email" required placeholder="Email address" value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-            />
-            <input
-              type="password"
-              required
-              placeholder="Password"
-              value={password}
+              className="w-full p-3 rounded-xl border-2 border-slate-200 outline-none focus:border-indigo-500 text-sm transition-colors" />
+            <input type="password" required placeholder="Password (min. 6 characters)" value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-            />
-
-            {error && (
-              <p className="text-red-500 text-xs bg-red-50 p-3 rounded-lg">{error}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors disabled:opacity-50 text-sm"
-            >
+              className="w-full p-3 rounded-xl border-2 border-slate-200 outline-none focus:border-indigo-500 text-sm transition-colors" />
+            {error && <p className="text-red-500 text-xs bg-red-50 p-3 rounded-xl border border-red-100">{error}</p>}
+            <button type="submit" disabled={loading}
+              className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors disabled:opacity-50 text-sm">
               {loading ? 'Please wait...' : isRegister ? 'Create Account' : 'Sign In'}
             </button>
           </form>
 
-          <p className="text-center text-xs text-slate-500 mt-4">
+          <p className="text-center text-xs text-slate-500 mt-5">
             {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
-            <button
-              onClick={() => { setIsRegister(!isRegister); setError(''); }}
-              className="text-indigo-600 font-medium hover:underline"
-            >
+            <button onClick={() => { setIsRegister(!isRegister); setError(''); }}
+              className="text-indigo-600 font-semibold hover:underline">
               {isRegister ? 'Sign In' : 'Register'}
             </button>
           </p>
