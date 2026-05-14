@@ -1,4 +1,3 @@
-```tsx
 import React, { useState, useEffect } from 'react';
 import { ref, push, onValue, remove, update } from 'firebase/database';
 import { db } from '../firebase';
@@ -13,7 +12,7 @@ export default function AdminDashboard() {
     priority: 'Medium',
     dueDate: '',
     assignee: '',
-    status: 'Pending'
+    status: 'Pending',
   });
 
   useEffect(() => {
@@ -26,7 +25,7 @@ export default function AdminDashboard() {
         const taskList = Object.entries(data).map(
           ([id, value]: [string, any]) => ({
             id,
-            ...value
+            ...value,
           })
         );
 
@@ -44,7 +43,7 @@ export default function AdminDashboard() {
 
     push(tasksRef, {
       ...newTask,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     });
 
     setNewTask({
@@ -53,7 +52,7 @@ export default function AdminDashboard() {
       priority: 'Medium',
       dueDate: '',
       assignee: '',
-      status: 'Pending'
+      status: 'Pending',
     });
   };
 
@@ -92,7 +91,7 @@ export default function AdminDashboard() {
             onChange={(e) =>
               setNewTask({
                 ...newTask,
-                title: e.target.value
+                title: e.target.value,
               })
             }
           />
@@ -105,7 +104,7 @@ export default function AdminDashboard() {
             onChange={(e) =>
               setNewTask({
                 ...newTask,
-                description: e.target.value
+                description: e.target.value,
               })
             }
           />
@@ -118,7 +117,7 @@ export default function AdminDashboard() {
             onChange={(e) =>
               setNewTask({
                 ...newTask,
-                priority: e.target.value
+                priority: e.target.value,
               })
             }
           >
@@ -134,7 +133,7 @@ export default function AdminDashboard() {
             onChange={(e) =>
               setNewTask({
                 ...newTask,
-                dueDate: e.target.value
+                dueDate: e.target.value,
               })
             }
           />
@@ -147,7 +146,7 @@ export default function AdminDashboard() {
             onChange={(e) =>
               setNewTask({
                 ...newTask,
-                assignee: e.target.value
+                assignee: e.target.value,
               })
             }
           />
@@ -175,4 +174,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-```
