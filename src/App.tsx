@@ -1,9 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import MemberDashboard from './pages/MemberDashboard';
 
-export default function App() {
-  const [view, setView] = useState<'member' | 'admin'>('member');
+function AppContent() {
+  const { user, isAdmin, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-500 text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return <LoginPage />;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
@@ -12,39 +27,31 @@ export default function App() {
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
             C
           </div>
-          <span className="font-bold text-lg tracking-tight">
-            CAS Dashboard
+          <span className="font-bold text-lg tracking-tight">CAS Dashboard</span>
+        </div>
+        <div className="flex items-center gap-3">
+          {user.photoURL && (
+            <img src={user.photoURL} className="w-8 h-8 rounded-full" alt="avatar" />
+          )}
+          <span className="text-sm text-slate-600 hidden sm:block">
+            {user.displayName || user.email}
+          </span>
+          <span className={`text-xs font-bold px-2 py-1 rounded-full ${isAdmin ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'}`}>
+            {isAdmin ? 'Admin' : 'Member'}
           </span>
         </div>
-
-        <div className="flex bg-slate-100 p-1 rounded-xl">
-          <button
-            onClick={() => setView('member')}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-              view === 'member'
-                ? 'bg-white shadow-sm text-indigo-600'
-                : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Member View
-          </button>
-
-          <button
-            onClick={() => setView('admin')}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-              view === 'admin'
-                ? 'bg-white shadow-sm text-indigo-600'
-                : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Admin View
-          </button>
-        </div>
       </nav>
-
       <main className="py-8">
-        {view === 'admin' ? <AdminDashboard /> : <MemberDashboard />}
+        {isAdmin ? <AdminDashboard /> : <MemberDashboard />}
       </main>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
